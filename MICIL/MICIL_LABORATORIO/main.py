@@ -1,5 +1,5 @@
 import tkinter as tk
-from interfaz import AplicacionIntercepcionMisiles
+from ui import AplicacionIntercepcionMisiles
 
 if __name__ == "__main__":
     root = tk.Tk()
