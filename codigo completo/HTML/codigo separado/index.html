@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Avanzada de Matrices y Vectores</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Calculadora Avanzada</h1>
+            <p>Matrices y Vectores - Herramienta Matemática Completa</p>
+        </div>
+
+        <nav class="main-nav">
+            <button class="nav-btn active" onclick="showSection('matrices')">🔢 Matrices</button>
+            <button class="nav-btn" onclick="showSection('vectors')">➡️ Vectores</button>
+            <button class="nav-btn" onclick="showSection('equation-systems')">➗ Sistemas</button>
+            <button class="nav-btn" onclick="showSection('calculator')">🧪 Calculadora</button>
+        </nav>
+
+        <!-- Sección de Matrices -->
+        <div id="matrices" class="section active">
+            <h2 class="section-title">Operaciones con Matrices</h2>
+
+            <div class="input-grid">
+                <div class="input-card">
+                    <h3>📊 Matriz A</h3>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="fillMatrix('matrix-a', 'identity')">Identidad</button>
+                        <button class="quick-btn" onclick="fillMatrix('matrix-a', 'zeros')">Ceros</button>
+                        <button class="quick-btn" onclick="fillMatrix('matrix-a', 'ones')">Unos</button>
+                        <button class="quick-btn" onclick="fillMatrix('matrix-a', 'random')">Aleatorio</button>
+                        <button class="quick-btn" onclick="clearMatrix('matrix-a')">Limpiar</button>
+                    </div>
+                    <div class="dimension-controls">
+                        <label>Filas:</label>
+                        <input type="number" class="dimension-input" id="matrix-a-rows" value="3" min="1" max="6" onchange="generateMatrixInputs('matrix-a', this.value, document.getElementById('matrix-a-cols').value)">
+                        <label>Columnas:</label>
+                        <input type="number" class="dimension-input" id="matrix-a-cols" value="3" min="1" max="6" onchange="generateMatrixInputs('matrix-a', document.getElementById('matrix-a-rows').value, this.value)">
+                    </div>
+                    <div id="matrix-a-inputs" class="matrix-grid"></div>
+                </div>
+
+                <div class="input-card">
+                    <h3>📊 Matriz B</h3>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="fillMatrix('matrix-b', 'identity')">Identidad</button>
+                        <button class="quick-btn" onclick="fillMatrix('matrix-b', 'zeros')">Ceros</button>
+                        <button class="quick-btn" onclick="fillMatrix('matrix-b', 'ones')">Unos</button>
+                        <button class="quick-btn" onclick="fillMatrix('matrix-b', 'random')">Aleatorio</button>
+                        <button class="quick-btn" onclick="clearMatrix('matrix-b')">Limpiar</button>
+                    </div>
+                    <div class="dimension-controls">
+                        <label>Filas:</label>
+                        <input type="number" class="dimension-input" id="matrix-b-rows" value="3" min="1" max="6" onchange="generateMatrixInputs('matrix-b', this.value, document.getElementById('matrix-b-cols').value)">
+                        <label>Columnas:</label>
+                        <input type="number" class="dimension-input" id="matrix-b-cols" value="3" min="1" max="6" onchange="generateMatrixInputs('matrix-b', document.getElementById('matrix-b-rows').value, this.value)">
+                    </div>
+                    <div id="matrix-b-inputs" class="matrix-grid"></div>
+                </div>
+            </div>
+
+            <div class="operations-grid">
+                <button class="operation-btn" onclick="addMatrices()">➕ Suma A + B</button>
+                <button class="operation-btn" onclick="subtractMatrices()">➖ Resta A - B</button>
+                <button class="operation-btn" onclick="multiplyMatrices()">✖️ Multiplicación A × B</button>
+                <button class="operation-btn" onclick="transposeMatrix()">🔄 Transpuesta A</button>
+                <button class="operation-btn" onclick="determinantMatrix()">🎯 Determinante A</button>
+                <button class="operation-btn" onclick="scalarMultiply()">📈 Escalar × A</button>
+                <button class="operation-btn" onclick="matrixPower()">⚡ Potencia A^n</button>
+                <button class="operation-btn" onclick="inverseMatrix()">🔄 Inversa A</button>
+                <button class="operation-btn" onclick="rankMatrix()">📏 Rango A</button>
+                <button class="operation-btn" onclick="traceMatrix()">📐 Traza A</button>
+                <button class="operation-btn" onclick="eigenvaluesMatrix()">🎲 Eigenvalores A</button>
+                <button class="operation-btn" onclick="luDecomposition()">📊 Descomposición LU</button>
+                <button class="operation-btn" onclick="determinantAx()">🎯 Determinante Ax</button>
+                <button class="operation-btn" onclick="determinantAy()">🎯 Determinante Ay</button>
+                <button class="operation-btn" onclick="determinantAz()">🎯 Determinante Az</button>
+            </div>
+
+            <div class="result-card">
+                <div id="matrix-result" class="result-content">
+                    <div class="empty-result">Los resultados aparecerán aquí...</div>
+                </div>
+            </div>
+
+            <div class="procedure-container">
+                <div id="matrix-procedure"></div>
+            </div>
+        </div>
+
+        <!-- Sección de Vectores -->
+        <div id="vectors" class="section">
+            <h2 class="section-title">Operaciones con Vectores</h2>
+
+            <div class="input-grid">
+                <div class="input-card">
+                    <h3>➡️ Vector A</h3>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="fillVector('vector-a', 'zeros')">Ceros</button>
+                        <button class="quick-btn" onclick="fillVector('vector-a', 'ones')">Unos</button>
+                        <button class="quick-btn" onclick="fillVector('vector-a', 'random')">Aleatorio</button>
+                        <button class="quick-btn" onclick="fillVector('vector-a', 'unit')">Unitario</button>
+                        <button class="quick-btn" onclick="clearVector('vector-a')">Limpiar</button>
+                    </div>
+                    <div class="dimension-controls">
+                        <label>Dimensión:</label>
+                        <input type="number" class="dimension-input" id="vector-a-dim" value="3" min="2" max="6" onchange="generateVectorInputs('vector-a', this.value)">
+                    </div>
+                    <div id="vector-a-inputs" class="vector-grid"></div>
+                </div>
+
+                <div class="input-card">
+                    <h3>➡️ Vector B</h3>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="fillVector('vector-b', 'zeros')">Ceros</button>
+                        <button class="quick-btn" onclick="fillVector('vector-b', 'ones')">Unos</button>
+                        <button class="quick-btn" onclick="fillVector('vector-b', 'random')">Aleatorio</button>
+                        <button class="quick-btn" onclick="fillVector('vector-b', 'unit')">Unitario</button>
+                        <button class="quick-btn" onclick="clearVector('vector-b')">Limpiar</button>
+                    </div>
+                    <div class="dimension-controls">
+                        <label>Dimensión:</label>
+                        <input type="number" class="dimension-input" id="vector-b-dim" value="3" min="2" max="6" onchange="generateVectorInputs('vector-b', this.value)">
+                    </div>
+                    <div id="vector-b-inputs" class="vector-grid"></div>
+                </div>
+            </div>
+
+            <div class="operations-grid">
+                <button class="operation-btn" onclick="addVectors()">➕ Suma A + B</button>
+                <button class="operation-btn" onclick="subtractVectors()">➖ Resta A - B</button>
+                <button class="operation-btn" onclick="dotProduct()">⚫ Producto Escalar</button>
+                <button class="operation-btn" onclick="crossProduct()">✖️ Producto Vectorial</button>
+                <button class="operation-btn" onclick="vectorMagnitude()">📏 Magnitud A</button>
+                <button class="operation-btn" onclick="vectorAngle()">📐 Ángulo A, B</button>
+                <button class="operation-btn" onclick="normalizeVector()">📐 Normalizar A</button>
+                <button class="operation-btn" onclick="projectVector()">📍 Proyección A→B</button>
+                <button class="operation-btn" onclick="distanceBetweenVectors()">📏 Distancia A↔B</button>
+                <button class="operation-btn" onclick="vectorTripleProduct()">🔺 Producto Triple</button>
+                <button class="operation-btn" onclick="scalarTripleProduct()">🔺 Triple Escalar</button>
+                <button class="operation-btn" onclick="vectorPerpendicular()">⟂ Perpendicular A</button>
+            </div>
+
+            <div class="result-card">
+                <div id="vector-result" class="result-content">
+                    <div class="empty-result">Los resultados aparecerán aquí...</div>
+                </div>
+            </div>
+
+            <div class="procedure-container">
+                <div id="vector-procedure"></div>
+            </div>
+        </div>
+
+        <!-- Sección de Sistemas de Ecuaciones -->
+        <div id="equation-systems" class="section">
+            <h2 class="section-title">Sistemas de Ecuaciones Lineales</h2>
+
+            <div class="input-grid">
+                <div class="input-card">
+                    <h3>📝 Matriz de Coeficientes</h3>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="fillEquationMatrix('random')">Aleatorio</button>
+                        <button class="quick-btn" onclick="fillEquationMatrix('example')">Ejemplo</button>
+                        <button class="quick-btn" onclick="clearEquationMatrix()">Limpiar</button>
+                    </div>
+                    <div class="dimension-controls">
+                        <label>Ecuaciones:</label>
+                        <input type="number" class="dimension-input" id="equations-rows" value="3" min="1" max="6" onchange="generateEquationInputs(this.value, document.getElementById('equations-cols').value)">
+                        <label>Incógnitas:</label>
+                        <input type="number" class="dimension-input" id="equations-cols" value="3" min="1" max="6" onchange="generateEquationInputs(document.getElementById('equations-rows').value, this.value)">
+                    </div>
+                    <div id="equations-inputs" class="matrix-grid"></div>
+                </div>
+
+                <div class="input-card">
+                    <h3>📝 Vector de Términos Independientes</h3>
+                    <div id="constants-inputs" class="vector-grid"></div>
+                </div>
+            </div>
+
+            <div class="operations-grid">
+                <button class="operation-btn" onclick="solveSystemGauss()">🔍 Método de Gauss</button>
+                <button class="operation-btn" onclick="solveSystemCramer()">📐 Regla de Cramer</button>
+                <button class="operation-btn" onclick="solveSystemMatrix()">🔄 Método Matricial</button>
+                <button class="operation-btn" onclick="systemDeterminant()">🎯 Determinante</button>
+                <button class="operation-btn" onclick="systemRank()">📏 Rango</button>
+                <button class="operation-btn" onclick="systemConsistency()">✅ Consistencia</button>
+            </div>
+
+            <div class="result-card">
+                <div id="equation-result" class="result-content">
+                    <div class="empty-result">Los resultados aparecerán aquí...</div>
+                </div>
+            </div>
+
+            <div class="procedure-container">
+                <div id="equation-procedure"></div>
+            </div>
+        </div>
+
+        <!-- Nueva Sección de Calculadora -->
+        <div id="calculator" class="section">
+            <h2 class="section-title">Calculadora Científica</h2>
+
+            <div class="input-grid">
+                <div class="input-card">
+                    <h3>🧪 Operaciones Avanzadas</h3>
+                    <div class="dimension-controls">
+                        <label>Expresión:</label>
+                        <input type="text" id="expression-input" placeholder="Ej: sin(30*pi/180)" style="width: 100%; padding: 10px; margin: 10px 0;">
+                    </div>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="insertFunction('sin(')">sin</button>
+                        <button class="quick-btn" onclick="insertFunction('cos(')">cos</button>
+                        <button class="quick-btn" onclick="insertFunction('tan(')">tan</button>
+                        <button class="quick-btn" onclick="insertFunction('log(')">log</button>
+                        <button class="quick-btn" onclick="insertFunction('sqrt(')">√</button>
+                        <button class="quick-btn" onclick="insertFunction('pi')">π</button>
+                        <button class="quick-btn" onclick="insertFunction('e')">e</button>
+                        <button class="quick-btn" onclick="clearExpression()">Limpiar</button>
+                    </div>
+                </div>
+
+                <div class="input-card">
+                    <h3>📊 Conversiones</h3>
+                    <div class="dimension-controls">
+                        <label>Grados:</label>
+                        <input type="number" id="degrees-input" placeholder="Ángulo en grados" style="width: 100px; padding: 8px; margin: 5px;">
+                        <label>Radianes:</label>
+                        <input type="number" id="radians-input" placeholder="Ángulo en radianes" style="width: 100px; padding: 8px; margin: 5px;">
+                    </div>
+                    <div class="quick-fill">
+                        <button class="quick-btn" onclick="convertToRadians()">° → rad</button>
+                        <button class="quick-btn" onclick="convertToDegrees()">rad → °</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="operations-grid">
+                <button class="operation-btn" onclick="evaluateExpression()">🧮 Evaluar Expresión</button>
+                <button class="operation-btn" onclick="calculateFactorial()">! Factorial</button>
+                <button class="operation-btn" onclick="calculateCombination()">C(n,r) Combinaciones</button>
+                <button class="operation-btn" onclick="calculatePermutation()">P(n,r) Permutaciones</button>
+                <button class="operation-btn" onclick="calculateGCD()">MCD</button>
+                <button class="operation-btn" onclick="calculateLCM()">MCM</button>
+            </div>
+
+            <div class="result-card">
+                <div id="calculator-result" class="result-content">
+                    <div class="empty-result">Los resultados aparecerán aquí...</div>
+                </div>
+            </div>
+
+            <div class="procedure-container">
+                <div id="calculator-procedure"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Vectorial Avanzada</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@9.4.4/lib/browser/math.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.16.1/plotly.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --accent: #f72585;
+            --text: #2b2d42;
+            --text-light: #8d99ae;
+            --background: #edf2f4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .menu button {
+            padding: 12px 20px;
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu button:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu button i {
+            font-size: 1rem;
+        }
+
+        .tool-description {
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+            color: var(--text-light);
+            display: none;
+        }
+
+        .menu button:hover .tool-description {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .resultados {
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: #f0f7ff;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .resultados h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .resultados p {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .resultados .formula {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vector-component {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 0 3px;
+            background: var(--primary-light);
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .visualization-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #graficaContainer {
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #grafica3D {
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .plotly-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .input-form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .input-form h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--secondary);
+        }
+
+        .footer {
+            margin-top: auto;
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        /* Modo oscuro */
+        .dark-mode {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--dark);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark {
+            --background: #121212;
+            --text: #e0e0e0;
+            --text-light: #9e9e9e;
+        }
+
+        body.dark .card {
+            background: #1e1e1e;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark .resultados {
+            background: #2a2a2a;
+        }
+
+        body.dark .formula {
+            background: #333;
+            color: white;
+        }
+
+        body.dark .menu button {
+            background: #333;
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        body.dark .menu button:hover {
+            background: var(--success);
+            color: #333;
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+
+            .menu {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode" id="darkModeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="header">
+        <h1>Calculadora Vectorial Avanzada</h1>
+        <p>Herramienta interactiva para operaciones y visualizaciones vectoriales</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="menu" id="menu">
+                <button onclick="mostrarOperacion('sumaVectores')" class="tooltip">
+                    <i class="fas fa-plus"></i> Suma de Vectores
+                    <span class="tooltiptext">Añade dos vectores componente a componente</span>
+                </button>
+                <button onclick="mostrarOperacion('restaVectores')" class="tooltip">
+                    <i class="fas fa-minus"></i> Resta de Vectores
+                    <span class="tooltiptext">Resta dos vectores componente a componente</span>
+                </button>
+                <button onclick="mostrarOperacion('productoEscalar')" class="tooltip">
+                    <i class="fas fa-dot-circle"></i> Producto Escalar
+                    <span class="tooltiptext">Calcula el producto escalar (dot product) entre vectores</span>
+                </button>
+                <button onclick="mostrarOperacion('productoVectorial')" class="tooltip">
+                    <i class="fas fa-times"></i> Producto Vectorial
+                    <span class="tooltiptext">Calcula el producto vectorial (cross product) entre vectores</span>
+                </button>
+                <button onclick="mostrarOperacion('magnitudVector')" class="tooltip">
+                    <i class="fas fa-ruler"></i> Magnitud de Vector
+                    <span class="tooltiptext">Calcula la longitud o norma de un vector</span>
+                </button>
+                <button onclick="mostrarOperacion('anguloEntreVectores')" class="tooltip">
+                    <i class="fas fa-angle-double-right"></i> Ángulo entre Vectores
+                    <span class="tooltiptext">Calcula el ángulo entre dos vectores</span>
+                </button>
+                <button onclick="mostrarOperacion('productoEscalarPorVector')" class="tooltip">
+                    <i class="fas fa-calculator"></i> Escalar por Vector
+                    <span class="tooltiptext">Multiplica un vector por un número escalar</span>
+                </button>
+                <button onclick="mostrarOperacion('proyeccionVector')" class="tooltip">
+                    <i class="fas fa-project-diagram"></i> Proyección de Vector
+                    <span class="tooltiptext">Calcula la proyección de un vector sobre otro</span>
+                </button>
+                <button onclick="mostrarOperacion('componentesRectangulares')" class="tooltip">
+                    <i class="fas fa-cubes"></i> Componentes Rectangulares
+                    <span class="tooltiptext">Analiza las componentes de un vector</span>
+                </button>
+                <button onclick="mostrarOperacion('direccionPuntosCardinales')" class="tooltip">
+                    <i class="fas fa-compass"></i> Puntos Cardinales
+                    <span class="tooltiptext">Convierte un vector a direcciones cardinales</span>
+                </button>
+                <button onclick="mostrarOperacion('distanciaRecorrida')" class="tooltip">
+                    <i class="fas fa-route"></i> Distancia Recorrida
+                    <span class="tooltiptext">Calcula la distancia total recorrida entre puntos</span>
+                </button>
+                <button onclick="mostrarOperacion('desplazamiento')" class="tooltip">
+                    <i class="fas fa-arrow-right"></i> Desplazamiento
+                    <span class="tooltiptext">Calcula el vector de desplazamiento entre dos puntos</span>
+                </button>
+                <button onclick="mostrarOperacion('transformacionLineal')" class="tooltip">
+                    <i class="fas fa-random"></i> Transformación Lineal
+                    <span class="tooltiptext">Aplica una transformación lineal a un vector</span>
+                </button>
+                <button onclick="mostrarOperacion('rotacion2D')" class="tooltip">
+                    <i class="fas fa-sync"></i> Rotación 2D
+                    <span class="tooltiptext">Rota un vector en el plano 2D</span>
+                </button>
+                <button onclick="mostrarOperacion('rotacion3D')" class="tooltip">
+                    <i class="fas fa-cube"></i> Rotación 3D
+                    <span class="tooltiptext">Rota un vector en el espacio 3D</span>
+                </button>
+                <button onclick="mostrarOperacion('normalizar')" class="tooltip">
+                    <i class="fas fa-compress-arrows-alt"></i> Normalizar Vector
+                    <span class="tooltiptext">Convierte un vector a un vector unitario</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card" id="inputCard" style="display: none;">
+            <div id="formularioEntrada"></div>
+        </div>
+
+        <div class="card" id="resultadosCard" style="display: none;">
+            <div class="tabs">
+                <div class="tab active" data-tab="resultados">Resultados</div>
+                <div class="tab" data-tab="visualizacion">Visualización</div>
+                <div class="tab" data-tab="formulas">Fórmulas</div>
+            </div>
+            <div class="tab-content active" id="resultados-tab">
+                <div id="resultados" class="resultados"></div>
+            </div>
+            <div class="tab-content" id="visualizacion-tab">
+                <div class="visualization-container">
+                    <div id="graficaContainer">
+                        <canvas id="grafica"></canvas>
+                    </div>
+                    <div id="grafica3D" style="display: none;"></div>
+                    <div id="plotlyContainer" class="plotly-container" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="tab-content" id="formulas-tab">
+                <div id="formulas" class="resultados"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Calculadora Vectorial Avanzada © 2025 | Desarrollada con HTML, CSS y JavaScript</p>
+    </div>
+
+    <script>
+        /* Configuración global y variables */
+        let operacionActual = '';
+        let datosVisualizacion = {};
+        let graficaActiva = null;
+        let scene, camera, renderer, axes;
+        let darkMode = false;
+
+        // Toggle modo oscuro
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark');
+            darkMode = !darkMode;
+            this.innerHTML = darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+
+            // Actualizar gráficas si existen
+            if (graficaActiva) {
+                actualizarVisualizacion();
+            }
+        });
+
+        // Control de pestañas
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+
+                if (tab.dataset.tab === 'visualizacion' && graficaActiva) {
+                    setTimeout(() => {
+                        actualizarVisualizacion();
+                    }, 100);
+                }
+            });
+        });
+
+        // Función para mostrar el formulario de operación
+        function mostrarOperacion(operacion) {
+            operacionActual = operacion;
+            document.getElementById('inputCard').style.display = 'block';
+            document.getElementById('resultadosCard').style.display = 'none';
+
+            // Limpiar visualizaciones anteriores
+            if (graficaActiva) {
+                if (graficaActiva.destroy) {
+                    graficaActiva.destroy();
+                }
+                graficaActiva = null;
+            }
+
+            if (renderer) {
+                document.getElementById('grafica3D').innerHTML = '';
+            }
+
+            // Crear formulario según la operación
+            let formulario = '';
+
+            switch(operacion) {
+                case 'sumaVectores':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-plus"></i> Suma de Vectores</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector1">Vector 1:</label>
+                                    <input type="text" id="vector1" placeholder="Ej: 2 3" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="vector2">Vector 2:</label>
+                                    <input type="text" id="vector2" placeholder="Ej: 4 -1" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularSumaVectores()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'restaVectores':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-minus"></i> Resta de Vectores</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector1">Vector 1:</label>
+                                    <input type="text" id="vector1" placeholder="Ej: 2 3" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="vector2">Vector 2:</label>
+                                    <input type="text" id="vector2" placeholder="Ej: 4 -1" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularRestaVectores()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'productoEscalar':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-dot-circle"></i> Producto Escalar</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector1">Vector 1:</label>
+                                    <input type="text" id="vector1" placeholder="Ej: 2 3" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="vector2">Vector 2:</label>
+                                    <input type="text" id="vector2" placeholder="Ej: 4 -1" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularProductoEscalar()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'productoVectorial':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-times"></i> Producto Vectorial</h3>
+                            <p style="margin-bottom: 1rem;">Nota: El producto vectorial solo está definido para vectores 3D.</p>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector1">Vector 1 (x y z):</label>
+                                    <input type="text" id="vector1" placeholder="Ej: 2 3 1" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="vector2">Vector 2 (x y z):</label>
+                                    <input type="text" id="vector2" placeholder="Ej: 4 -1 5" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularProductoVectorial()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'magnitudVector':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-ruler"></i> Magnitud de Vector</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                    <option value="n">nD (múltiples componentes)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector">Vector:</label>
+                                    <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularMagnitudVector()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'anguloEntreVectores':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-angle-double-right"></i> Ángulo entre Vectores</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="unidadAngulo">Unidad de ángulo:</label>
+                                <select id="unidadAngulo">
+                                    <option value="grados">Grados</option>
+                                    <option value="radianes">Radianes</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector1">Vector 1:</label>
+                                    <input type="text" id="vector1" placeholder="Ej: 2 3" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="vector2">Vector 2:</label>
+                                    <input type="text" id="vector2" placeholder="Ej: 4 -1" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularAnguloEntreVectores()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'productoEscalarPorVector':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-calculator"></i> Producto Escalar por Vector</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="escalar">Escalar:</label>
+                                <input type="number" id="escalar" placeholder="Ej: 2" step="0.1" required>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector">Vector:</label>
+                                    <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularProductoEscalarPorVector()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'proyeccionVector':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-project-diagram"></i> Proyección de Vector</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector1">Vector a proyectar:</label>
+                                    <input type="text" id="vector1" placeholder="Ej: 2 3" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="vector2">Sobre el vector:</label>
+                                    <input type="text" id="vector2" placeholder="Ej: 4 -1" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularProyeccionVector()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'componentesRectangulares':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-cubes"></i> Componentes Rectangulares</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector">Vector:</label>
+                                    <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularComponentesRectangulares()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'direccionPuntosCardinales':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-compass"></i> Puntos Cardinales</h3>
+                            <div class="input-group">
+                                <label for="vector">Vector 2D (x, y):</label>
+                                <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                            </div>
+                            <button class="btn-submit" onclick="calcularDireccionPuntosCardinales()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'distanciaRecorrida':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-route"></i> Distancia Recorrida</h3>
+                            <div class="input-group">
+                                <label for="puntos">Puntos (x y):</label>
+                                <textarea id="puntos" placeholder="Ej: 0 0&#10;3 4&#10;6 8" required></textarea>
+                            </div>
+                            <button class="btn-submit" onclick="calcularDistanciaRecorrida()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'desplazamiento':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-arrow-right"></i> Desplazamiento</h3>
+                            <div class="input-group">
+                                <label for="puntoInicial">Punto Inicial (x y):</label>
+                                <input type="text" id="puntoInicial" placeholder="Ej: 0 0" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="puntoFinal">Punto Final (x y):</label>
+                                <input type="text" id="puntoFinal" placeholder="Ej: 3 4" required>
+                            </div>
+                            <button class="btn-submit" onclick="calcularDesplazamiento()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'transformacionLineal':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-random"></i> Transformación Lineal</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="matriz">Matriz de Transformación (fila por fila):</label>
+                                <textarea id="matriz" placeholder="Ej: 1 0&#10;0 1" required></textarea>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector">Vector:</label>
+                                    <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularTransformacionLineal()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'rotacion2D':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-sync"></i> Rotación 2D</h3>
+                            <div class="input-group">
+                                <label for="vector">Vector (x y):</label>
+                                <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="angulo">Ángulo (grados):</label>
+                                <input type="number" id="angulo" placeholder="Ej: 90" required>
+                            </div>
+                            <button class="btn-submit" onclick="calcularRotacion2D()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'rotacion3D':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-cube"></i> Rotación 3D</h3>
+                            <div class="input-group">
+                                <label for="vector">Vector (x y z):</label>
+                                <input type="text" id="vector" placeholder="Ej: 2 3 1" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="eje">Eje de rotación:</label>
+                                <select id="eje">
+                                    <option value="x">Eje X</option>
+                                    <option value="y">Eje Y</option>
+                                    <option value="z">Eje Z</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="angulo">Ángulo (grados):</label>
+                                <input type="number" id="angulo" placeholder="Ej: 90" required>
+                            </div>
+                            <button class="btn-submit" onclick="calcularRotacion3D()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+                case 'normalizar':
+                    formulario = `
+                        <div class="input-form">
+                            <h3><i class="fas fa-compress-arrows-alt"></i> Normalizar Vector</h3>
+                            <div class="input-group">
+                                <label for="dimensiones">Dimensiones:</label>
+                                <select id="dimensiones" onchange="actualizarFormulario()">
+                                    <option value="2">2D (x, y)</option>
+                                    <option value="3">3D (x, y, z)</option>
+                                </select>
+                            </div>
+                            <div id="componentes-container">
+                                <div class="input-group">
+                                    <label for="vector">Vector:</label>
+                                    <input type="text" id="vector" placeholder="Ej: 2 3" required>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="calcularNormalizarVector()">Calcular</button>
+                        </div>
+                    `;
+                    break;
+            }
+
+            document.getElementById('formularioEntrada').innerHTML = formulario;
+        }
+
+        // Función para actualizar el formulario según las dimensiones
+        function actualizarFormulario() {
+            const dimensiones = document.getElementById('dimensiones').value;
+            const componentesContainer = document.getElementById('componentes-container');
+
+            if (componentesContainer) {
+                const inputs = componentesContainer.querySelectorAll('input[type="text"]');
+                inputs.forEach(input => {
+                    if (dimensiones === '2') {
+                        input.placeholder = 'Ej: 2 3';
+                    } else if (dimensiones === '3') {
+                        input.placeholder = 'Ej: 2 3 1';
+                    } else if (dimensiones === 'n') {
+                        input.placeholder = 'Ej: 1 2 3 4 5';
+                    }
+                });
+            }
+        }
+
+        // Funciones de cálculo para cada operación
+        function calcularSumaVectores() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector1 = document.getElementById('vector1').value.split(' ').map(Number);
+            const vector2 = document.getElementById('vector2').value.split(' ').map(Number);
+
+            if (vector1.length !== vector2.length || (dim === '2' && vector1.length !== 2) || (dim === '3' && vector1.length !== 3)) {
+                alert('Los vectores deben tener la misma cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const resultado = vector1.map((val, idx) => val + vector2[idx]);
+
+            mostrarResultados(
+                'Suma de Vectores',
+                `El resultado de la suma de los vectores es: [${resultado.join(', ')}]`,
+                `Suma componente a componente: [${vector1.join(', ')}] + [${vector2.join(', ')}] = [${resultado.join(', ')}]`,
+                [vector1, vector2, resultado]
+            );
+        }
+
+        function calcularRestaVectores() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector1 = document.getElementById('vector1').value.split(' ').map(Number);
+            const vector2 = document.getElementById('vector2').value.split(' ').map(Number);
+
+            if (vector1.length !== vector2.length || (dim === '2' && vector1.length !== 2) || (dim === '3' && vector1.length !== 3)) {
+                alert('Los vectores deben tener la misma cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const resultado = vector1.map((val, idx) => val - vector2[idx]);
+
+            mostrarResultados(
+                'Resta de Vectores',
+                `El resultado de la resta de los vectores es: [${resultado.join(', ')}]`,
+                `Resta componente a componente: [${vector1.join(', ')}] - [${vector2.join(', ')}] = [${resultado.join(', ')}]`,
+                [vector1, vector2, resultado]
+            );
+        }
+
+        function calcularProductoEscalar() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector1 = document.getElementById('vector1').value.split(' ').map(Number);
+            const vector2 = document.getElementById('vector2').value.split(' ').map(Number);
+
+            if (vector1.length !== vector2.length || (dim === '2' && vector1.length !== 2) || (dim === '3' && vector1.length !== 3)) {
+                alert('Los vectores deben tener la misma cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const resultado = vector1.reduce((sum, val, idx) => sum + val * vector2[idx], 0);
+
+            mostrarResultados(
+                'Producto Escalar',
+                `El producto escalar de los vectores es: ${resultado}`,
+                `Producto escalar: [${vector1.join(', ')}] · [${vector2.join(', ')}] = ${resultado}`,
+                [vector1, vector2]
+            );
+        }
+
+        function calcularProductoVectorial() {
+            const vector1 = document.getElementById('vector1').value.split(' ').map(Number);
+            const vector2 = document.getElementById('vector2').value.split(' ').map(Number);
+
+            if (vector1.length !== 3 || vector2.length !== 3) {
+                alert('El producto vectorial solo está definido para vectores 3D.');
+                return;
+            }
+
+            const resultado = [
+                vector1[1] * vector2[2] - vector1[2] * vector2[1],
+                vector1[2] * vector2[0] - vector1[0] * vector2[2],
+                vector1[0] * vector2[1] - vector1[1] * vector2[0]
+            ];
+
+            mostrarResultados(
+                'Producto Vectorial',
+                `El producto vectorial de los vectores es: [${resultado.join(', ')}]`,
+                `Producto vectorial: [${vector1.join(', ')}] × [${vector2.join(', ')}] = [${resultado.join(', ')}]`,
+                [vector1, vector2, resultado]
+            );
+        }
+
+        function calcularMagnitudVector() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+
+            if ((dim === '2' && vector.length !== 2) || (dim === '3' && vector.length !== 3)) {
+                alert('El vector debe tener la cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const resultado = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+
+            mostrarResultados(
+                'Magnitud de Vector',
+                `La magnitud del vector es: ${resultado.toFixed(2)}`,
+                `Magnitud: √(${vector.map(v => v + '²').join(' + ')}) = ${resultado.toFixed(2)}`,
+                [vector]
+            );
+        }
+
+        function calcularAnguloEntreVectores() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector1 = document.getElementById('vector1').value.split(' ').map(Number);
+            const vector2 = document.getElementById('vector2').value.split(' ').map(Number);
+            const unidad = document.getElementById('unidadAngulo').value;
+
+            if (vector1.length !== vector2.length || (dim === '2' && vector1.length !== 2) || (dim === '3' && vector1.length !== 3)) {
+                alert('Los vectores deben tener la misma cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const productoEscalar = vector1.reduce((sum, val, idx) => sum + val * vector2[idx], 0);
+            const magnitud1 = Math.sqrt(vector1.reduce((sum, val) => sum + val * val, 0));
+            const magnitud2 = Math.sqrt(vector2.reduce((sum, val) => sum + val * val, 0));
+
+            let angulo = Math.acos(productoEscalar / (magnitud1 * magnitud2));
+
+            if (unidad === 'grados') {
+                angulo = angulo * 180 / Math.PI;
+            }
+
+            mostrarResultados(
+                'Ángulo entre Vectores',
+                `El ángulo entre los vectores es: ${angulo.toFixed(2)} ${unidad}`,
+                `Ángulo: cos⁻¹([${vector1.join(', ')}] · [${vector2.join(', ')}] / (|${vector1.join(', ')}| * |${vector2.join(', ')}|)) = ${angulo.toFixed(2)} ${unidad}`,
+                [vector1, vector2]
+            );
+        }
+
+        function calcularProductoEscalarPorVector() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+            const escalar = parseFloat(document.getElementById('escalar').value);
+
+            if ((dim === '2' && vector.length !== 2) || (dim === '3' && vector.length !== 3)) {
+                alert('El vector debe tener la cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const resultado = vector.map(val => val * escalar);
+
+            mostrarResultados(
+                'Producto Escalar por Vector',
+                `El resultado del producto escalar por vector es: [${resultado.join(', ')}]`,
+                `Producto escalar: ${escalar} * [${vector.join(', ')}] = [${resultado.join(', ')}]`,
+                [vector, resultado]
+            );
+        }
+
+        function calcularProyeccionVector() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector1 = document.getElementById('vector1').value.split(' ').map(Number);
+            const vector2 = document.getElementById('vector2').value.split(' ').map(Number);
+
+            if (vector1.length !== vector2.length || (dim === '2' && vector1.length !== 2) || (dim === '3' && vector1.length !== 3)) {
+                alert('Los vectores deben tener la misma cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const productoEscalar = vector1.reduce((sum, val, idx) => sum + val * vector2[idx], 0);
+            const magnitud2 = Math.sqrt(vector2.reduce((sum, val) => sum + val * val, 0));
+
+            const resultado = vector2.map(val => (productoEscalar / (magnitud2 * magnitud2)) * val);
+
+            mostrarResultados(
+                'Proyección de Vector',
+                `La proyección del vector es: [${resultado.join(', ')}]`,
+                `Proyección: ([${vector1.join(', ')}] · [${vector2.join(', ')}] / |${vector2.join(', ')}|²) * [${vector2.join(', ')}] = [${resultado.join(', ')}]`,
+                [vector1, vector2, resultado]
+            );
+        }
+
+        function calcularComponentesRectangulares() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+
+            if ((dim === '2' && vector.length !== 2) || (dim === '3' && vector.length !== 3)) {
+                alert('El vector debe tener la cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            mostrarResultados(
+                'Componentes Rectangulares',
+                `Las componentes rectangulares del vector son: [${vector.join(', ')}]`,
+                `Componentes: [${vector.join(', ')}]`,
+                [vector]
+            );
+        }
+
+        function calcularDireccionPuntosCardinales() {
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+
+            if (vector.length !== 2) {
+                alert('El vector debe tener 2 componentes para esta operación.');
+                return;
+            }
+
+            const angulo = Math.atan2(vector[1], vector[0]) * 180 / Math.PI;
+            let direccion;
+
+            if (angulo >= -22.5 && angulo < 22.5) {
+                direccion = 'Este';
+            } else if (angulo >= 22.5 && angulo < 67.5) {
+                direccion = 'Noreste';
+            } else if (angulo >= 67.5 && angulo < 112.5) {
+                direccion = 'Norte';
+            } else if (angulo >= 112.5 && angulo < 157.5) {
+                direccion = 'Noroeste';
+            } else if (angulo >= 157.5 || angulo < -157.5) {
+                direccion = 'Oeste';
+            } else if (angulo >= -157.5 && angulo < -112.5) {
+                direccion = 'Suroeste';
+            } else if (angulo >= -112.5 && angulo < -67.5) {
+                direccion = 'Sur';
+            } else if (angulo >= -67.5 && angulo < -22.5) {
+                direccion = 'Sureste';
+            }
+
+            mostrarResultados(
+                'Dirección Puntos Cardinales',
+                `La dirección del vector es: ${direccion}`,
+                `Dirección: atan2(${vector[1]}, ${vector[0]}) = ${angulo.toFixed(2)}° → ${direccion}`,
+                [vector]
+            );
+        }
+
+        function calcularDistanciaRecorrida() {
+            const puntos = document.getElementById('puntos').value.split('\n').map(line => line.trim().split(' ').map(Number));
+            let distanciaTotal = 0;
+
+            for (let i = 1; i < puntos.length; i++) {
+                const dx = puntos[i][0] - puntos[i-1][0];
+                const dy = puntos[i][1] - puntos[i-1][1];
+                distanciaTotal += Math.sqrt(dx * dx + dy * dy);
+            }
+
+            mostrarResultados(
+                'Distancia Recorrida',
+                `La distancia total recorrida es: ${distanciaTotal.toFixed(2)}`,
+                `Distancia: Σ√((x₂ - x₁)² + (y₂ - y₁)²) = ${distanciaTotal.toFixed(2)}`,
+                puntos
+            );
+        }
+
+        function calcularDesplazamiento() {
+            const puntoInicial = document.getElementById('puntoInicial').value.split(' ').map(Number);
+            const puntoFinal = document.getElementById('puntoFinal').value.split(' ').map(Number);
+
+            if (puntoInicial.length !== 2 || puntoFinal.length !== 2) {
+                alert('Los puntos deben tener 2 componentes para esta operación.');
+                return;
+            }
+
+            const desplazamiento = [puntoFinal[0] - puntoInicial[0], puntoFinal[1] - puntoInicial[1]];
+
+            mostrarResultados(
+                'Desplazamiento',
+                `El vector de desplazamiento es: [${desplazamiento.join(', ')}]`,
+                `Desplazamiento: [${puntoFinal.join(', ')}] - [${puntoInicial.join(', ')}] = [${desplazamiento.join(', ')}]`,
+                [puntoInicial, puntoFinal, desplazamiento]
+            );
+        }
+
+        function calcularTransformacionLineal() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+            const matriz = document.getElementById('matriz').value.split('\n').map(line => line.trim().split(' ').map(Number));
+
+            if ((dim === '2' && vector.length !== 2) || (dim === '3' && vector.length !== 3)) {
+                alert('El vector debe tener la cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            if ((dim === '2' && matriz.length !== 2) || (dim === '3' && matriz.length !== 3)) {
+                alert('La matriz debe tener la cantidad de filas según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const resultado = matriz.map(fila => fila.reduce((sum, val, idx) => sum + val * vector[idx], 0));
+
+            mostrarResultados(
+                'Transformación Lineal',
+                `El resultado de la transformación lineal es: [${resultado.join(', ')}]`,
+                `Transformación: [${matriz.map(fila => `[${fila.join(', ')}]`).join('; ')}] * [${vector.join(', ')}] = [${resultado.join(', ')}]`,
+                [vector, matriz, resultado]
+            );
+        }
+
+        function calcularRotacion2D() {
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+            const angulo = parseFloat(document.getElementById('angulo').value) * Math.PI / 180;
+
+            if (vector.length !== 2) {
+                alert('El vector debe tener 2 componentes para esta operación.');
+                return;
+            }
+
+            const cos = Math.cos(angulo);
+            const sin = Math.sin(angulo);
+
+            const resultado = [
+                vector[0] * cos - vector[1] * sin,
+                vector[0] * sin + vector[1] * cos
+            ];
+
+            mostrarResultados(
+                'Rotación 2D',
+                `El vector rotado es: [${resultado.join(', ')}]`,
+                `Rotación: [${vector.join(', ')}] rotado ${(angulo * 180 / Math.PI).toFixed(2)}° = [${resultado.join(', ')}]`,
+                [vector, resultado]
+            );
+        }
+
+        function calcularRotacion3D() {
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+            const eje = document.getElementById('eje').value;
+            const angulo = parseFloat(document.getElementById('angulo').value) * Math.PI / 180;
+
+            if (vector.length !== 3) {
+                alert('El vector debe tener 3 componentes para esta operación.');
+                return;
+            }
+
+            const cos = Math.cos(angulo);
+            const sin = Math.sin(angulo);
+            let resultado;
+
+            if (eje === 'x') {
+                resultado = [
+                    vector[0],
+                    vector[1] * cos - vector[2] * sin,
+                    vector[1] * sin + vector[2] * cos
+                ];
+            } else if (eje === 'y') {
+                resultado = [
+                    vector[0] * cos + vector[2] * sin,
+                    vector[1],
+                    -vector[0] * sin + vector[2] * cos
+                ];
+            } else if (eje === 'z') {
+                resultado = [
+                    vector[0] * cos - vector[1] * sin,
+                    vector[0] * sin + vector[1] * cos,
+                    vector[2]
+                ];
+            }
+
+            mostrarResultados(
+                'Rotación 3D',
+                `El vector rotado es: [${resultado.join(', ')}]`,
+                `Rotación: [${vector.join(', ')}] rotado ${(angulo * 180 / Math.PI).toFixed(2)}° alrededor del eje ${eje} = [${resultado.join(', ')}]`,
+                [vector, resultado]
+            );
+        }
+
+        function calcularNormalizarVector() {
+            const dim = document.getElementById('dimensiones').value;
+            const vector = document.getElementById('vector').value.split(' ').map(Number);
+
+            if ((dim === '2' && vector.length !== 2) || (dim === '3' && vector.length !== 3)) {
+                alert('El vector debe tener la cantidad de componentes según las dimensiones seleccionadas.');
+                return;
+            }
+
+            const magnitud = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+            const resultado = vector.map(val => val / magnitud);
+
+            mostrarResultados(
+                'Normalizar Vector',
+                `El vector normalizado es: [${resultado.join(', ')}]`,
+                `Normalización: [${vector.join(', ')}] / ${magnitud.toFixed(2)} = [${resultado.join(', ')}]`,
+                [vector, resultado]
+            );
+        }
+
+        // Función para mostrar los resultados
+        function mostrarResultados(titulo, resultado, formula, datos) {
+            document.getElementById('inputCard').style.display = 'none';
+            document.getElementById('resultadosCard').style.display = 'block';
+
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = `
+                <h2><i class="fas fa-calculator"></i> ${titulo}</h2>
+                <p>${resultado}</p>
+            `;
+
+            const formulasDiv = document.getElementById('formulas');
+            formulasDiv.innerHTML = `
+                <h2><i class="fas fa-equation"></i> Fórmulas</h2>
+                <p>${formula}</p>
+                <div class="formula">${formula}</div>
+            `;
+
+            // Guardar datos para visualización
+            datosVisualizacion = {
+                titulo: titulo,
+                datos: datos,
+                tipo: operacionActual
+            };
+
+            // Mostrar visualización
+            actualizarVisualizacion();
+        }
+
+        // Función para actualizar la visualización
+        function actualizarVisualizacion() {
+            const ctx = document.getElementById('grafica').getContext('2d');
+            const grafica3DContainer = document.getElementById('grafica3D');
+            const plotlyContainer = document.getElementById('plotlyContainer');
+
+            // Limpiar contenedores
+            grafica3DContainer.innerHTML = '';
+            plotlyContainer.innerHTML = '';
+            plotlyContainer.style.display = 'none';
+            grafica3DContainer.style.display = 'none';
+
+            // Destruir gráfica anterior si existe
+            if (graficaActiva) {
+                graficaActiva.destroy();
+            }
+
+            // Mostrar gráfica según el tipo de operación
+            if (datosVisualizacion.tipo === 'sumaVectores' ||
+                datosVisualizacion.tipo === 'restaVectores' ||
+                datosVisualizacion.tipo === 'productoEscalarPorVector' ||
+                datosVisualizacion.tipo === 'proyeccionVector' ||
+                datosVisualizacion.tipo === 'componentesRectangulares' ||
+                datosVisualizacion.tipo === 'transformacionLineal' ||
+                datosVisualizacion.tipo === 'rotacion2D' ||
+                datosVisualizacion.tipo === 'normalizar') {
+
+                // Gráfica 2D con Chart.js
+                graficaActiva = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: datosVisualizacion.datos.map((vector, index) => ({
+                            label: `Vector ${index + 1}`,
+                            data: [{x: vector[0], y: vector[1] || 0}],
+                            backgroundColor: ['#4361ee', '#3f37c9', '#4cc9f0'][index],
+                            pointRadius: 8,
+                            pointHoverRadius: 10
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: 'Eje X'
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Eje Y'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: datosVisualizacion.titulo,
+                                font: {
+                                    size: 18
+                                }
+                            },
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `(${context.raw.x}, ${context.raw.y})`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Mostrar gráfica 2D
+                document.getElementById('graficaContainer').style.display = 'block';
+                grafica3DContainer.style.display = 'none';
+                plotlyContainer.style.display = 'none';
+
+            } else if (datosVisualizacion.tipo === 'productoVectorial' ||
+                       datosVisualizacion.tipo === 'rotacion3D') {
+
+                // Gráfica 3D con Three.js
+                grafica3DContainer.style.display = 'block';
+                document.getElementById('graficaContainer').style.display = 'none';
+                plotlyContainer.style.display = 'none';
+
+                // Inicializar escena Three.js
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, grafica3DContainer.clientWidth / grafica3DContainer.clientHeight, 0.1, 1000);
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(grafica3DContainer.clientWidth, grafica3DContainer.clientHeight);
+                grafica3DContainer.appendChild(renderer.domElement);
+
+                // Crear ejes
+                const axesHelper = new THREE.AxesHelper(5);
+                scene.add(axesHelper);
+
+                // Crear vectores
+                const vectors = datosVisualizacion.datos;
+                const colors = [0x4361ee, 0x3f37c9, 0x4cc9f0];
+
+                vectors.forEach((vector, index) => {
+                    const geometry = new THREE.BufferGeometry();
+                    const material = new THREE.LineBasicMaterial({ color: colors[index] });
+
+                    const points = [];
+                    points.push(new THREE.Vector3(0, 0, 0));
+                    points.push(new THREE.Vector3(vector[0], vector[1] || 0, vector[2] || 0));
+
+                    geometry.setFromPoints(points);
+                    const line = new THREE.Line(geometry, material);
+                    scene.add(line);
+
+                    // Etiqueta del vector
+                    const spriteMaterial = new THREE.SpriteMaterial({ color: colors[index] });
+                    const sprite = new THREE.Sprite(spriteMaterial);
+                    sprite.position.set(vector[0], vector[1] || 0, vector[2] || 0);
+                    sprite.scale.set(0.5, 0.5, 0.5);
+                    scene.add(sprite);
+                });
+
+                // Posición de la cámara
+                camera.position.z = 10;
+
+                // Animación
+                function animate() {
+                    requestAnimationFrame(animate);
+                    renderer.render(scene, camera);
+                }
+
+                animate();
+
+            } else if (datosVisualizacion.tipo === 'anguloEntreVectores' ||
+                       datosVisualizacion.tipo === 'distanciaRecorrida' ||
+                       datosVisualizacion.tipo === 'desplazamiento') {
+
+                // Gráfica con Plotly.js
+                plotlyContainer.style.display = 'block';
+                document.getElementById('graficaContainer').style.display = 'none';
+                grafica3DContainer.style.display = 'none';
+
+                if (datosVisualizacion.tipo === 'anguloEntreVectores') {
+                    const vectors = datosVisualizacion.datos;
+                    const data = vectors.map((vector, index) => ({
+                        x: [0, vector[0]],
+                        y: [0, vector[1] || 0],
+                        mode: 'lines+markers',
+                        type: 'scatter',
+                        name: `Vector ${index + 1}`,
+                        line: {
+                            width: 3,
+                            color: ['#4361ee', '#3f37c9'][index]
+                        },
+                        marker: {
+                            size: 10,
+                            color: ['#4361ee', '#3f37c9'][index]
+                        }
+                    }));
+
+                    Plotly.newPlot(plotlyContainer, data, {
+                        title: datosVisualizacion.titulo,
+                        xaxis: { title: 'Eje X' },
+                        yaxis: { title: 'Eje Y' }
+                    });
+
+                } else if (datosVisualizacion.tipo === 'distanciaRecorrida') {
+                    const puntos = datosVisualizacion.datos;
+                    const x = puntos.map(p => p[0]);
+                    const y = puntos.map(p => p[1]);
+
+                    const data = [{
+                        x: x,
+                        y: y,
+                        mode: 'lines+markers',
+                        type: 'scatter',
+                        name: 'Trayectoria',
+                        line: {
+                            width: 3,
+                            color: '#4361ee'
+                        },
+                        marker: {
+                            size: 10,
+                            color: '#3f37c9'
+                        }
+                    }];
+
+                    Plotly.newPlot(plotlyContainer, data, {
+                        title: datosVisualizacion.titulo,
+                        xaxis: { title: 'Eje X' },
+                        yaxis: { title: 'Eje Y' }
+                    });
+
+                } else if (datosVisualizacion.tipo === 'desplazamiento') {
+                    const puntos = datosVisualizacion.datos;
+                    const data = [{
+                        x: [puntos[0][0], puntos[1][0]],
+                        y: [puntos[0][1], puntos[1][1]],
+                        mode: 'lines+markers',
+                        type: 'scatter',
+                        name: 'Desplazamiento',
+                        line: {
+                            width: 3,
+                            color: '#4361ee'
+                        },
+                        marker: {
+                            size: 10,
+                            color: ['#3f37c9', '#4cc9f0']
+                        }
+                    }, {
+                        x: [puntos[1][0], puntos[1][0] + puntos[2][0]],
+                        y: [puntos[1][1], puntos[1][1] + puntos[2][1]],
+                        mode: 'lines+markers',
+                        type: 'scatter',
+                        name: 'Vector Desplazamiento',
+                        line: {
+                            width: 3,
+                            color: '#4cc9f0',
+                            dash: 'dash'
+                        },
+                        marker: {
+                            size: 10,
+                            color: '#4cc9f0'
+                        }
+                    }];
+
+                    Plotly.newPlot(plotlyContainer, data, {
+                        title: datosVisualizacion.titulo,
+                        xaxis: { title: 'Eje X' },
+                        yaxis: { title: 'Eje Y' }
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
